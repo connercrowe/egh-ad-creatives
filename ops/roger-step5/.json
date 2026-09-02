@@ -1,0 +1,14 @@
+{
+  "agents": {
+    "main": {
+      "model": "anthropic/claude-sonnet-5"
+    }
+  },
+  "tools": {
+    "exec": {
+      "reviewer": {
+        "model": "anthropic/claude-sonnet-5"
+      }
+    }
+  }
+}
