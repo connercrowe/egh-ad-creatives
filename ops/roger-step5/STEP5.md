@@ -1,4 +1,9 @@
-# Step five: demote or retire Roger
+# Step five: retire Roger
+
+Decision: **retire**. `run-step5.sh` executes the whole retire path in order
+(backup, token extraction, notify.sh swap, retire) and stops at the first
+failure. The demote path below is kept for reference and as the fallback if
+inbound Telegram control turns out to matter more than expected.
 
 Roger = the OpenClaw agent on the Mac Mini (gateway `ai.openclaw.gateway`,
 Telegram bot @Crowe_ops_bot, plus its two babysitters `com.conner.roger-healthcheck`
