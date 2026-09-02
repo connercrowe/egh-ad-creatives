@@ -148,6 +148,71 @@ class AssessTests(unittest.TestCase):
         self.assertEqual(rows["com.conner.bad"]["status"], "BROKEN_PLIST")
 
 
+class ScheduleAwareTests(unittest.TestCase):
+    """Weeknight 20:00 job (Mon-Fri) checked at 10:30 the next morning."""
+    SCI = [{"Weekday": d, "Hour": 20, "Minute": 0} for d in (1, 2, 3, 4, 5)]
+
+    @staticmethod
+    def _at(weekday_py, hour, minute=30):
+        # a fixed reference week: Mon 2026-09-07
+        import datetime as dt
+        base = dt.datetime(2026, 9, 7, 0, 0)
+        return (base + dt.timedelta(days=weekday_py, hours=hour, minutes=minute)).timestamp()
+
+    def test_last_fire_tuesday_morning_is_monday_night(self):
+        now = self._at(1, 10)  # Tue 10:30
+        lf = fc.last_scheduled_fire({"StartCalendarInterval": self.SCI}, now)
+        self.assertEqual(fc.datetime.fromtimestamp(lf).strftime("%a %H:%M"), "Mon 20:00")
+
+    def test_last_fire_monday_morning_is_friday_night(self):
+        now = self._at(0, 10)  # Mon 10:30
+        lf = fc.last_scheduled_fire({"StartCalendarInterval": self.SCI}, now)
+        self.assertEqual(fc.datetime.fromtimestamp(lf).strftime("%a %H:%M"), "Fri 20:00")
+
+    def test_hourly_minute_only(self):
+        now = self._at(2, 14, 50)
+        lf = fc.last_scheduled_fire({"StartCalendarInterval": {"Minute": 15}}, now)
+        self.assertEqual(fc.datetime.fromtimestamp(lf).strftime("%a %H:%M"), "Wed 14:15")
+
+    def test_monthly_and_interval_fall_back(self):
+        self.assertIsNone(fc.last_scheduled_fire({"StartCalendarInterval": {"Day": 1, "Hour": 6}}, self._at(1, 10)))
+        self.assertIsNone(fc.last_scheduled_fire({"StartInterval": 300}, self._at(1, 10)))
+
+    def _assess_with_log_age(self, now, log_written_at):
+        d = tempfile.mkdtemp(); lp = str(Path(d) / "cs.log")
+        Path(lp).write_text("x"); os.utime(lp, (log_written_at, log_written_at))
+        write_plist(d, "com.conner.callscorer", StartCalendarInterval=self.SCI, StandardOutPath=lp)
+        rows = fc.assess(fc.read_plists(d), {"com.conner.callscorer": (None, 0)}, dict(fc.DEFAULT_CONFIG), now)
+        return rows[0]
+
+    def test_missed_monday_run_flagged_tuesday_morning(self):
+        row = self._assess_with_log_age(now=self._at(1, 10), log_written_at=self._at(-3, 21))  # last write Fri 21:00
+        self.assertEqual(row["status"], "STALE")
+        self.assertIn("Mon 20:00", row["detail"])
+
+    def test_monday_run_ok_tuesday_morning(self):
+        row = self._assess_with_log_age(now=self._at(1, 10), log_written_at=self._at(0, 21))  # Mon 21:00
+        self.assertEqual(row["status"], "OK")
+
+    def test_weekend_gap_not_flagged_monday_morning(self):
+        row = self._assess_with_log_age(now=self._at(0, 10), log_written_at=self._at(-3, 21))  # Fri 21:00
+        self.assertEqual(row["status"], "OK")
+
+    def test_within_grace_not_flagged(self):
+        row = self._assess_with_log_age(now=self._at(1, 21, 0), log_written_at=self._at(0, 21))  # Tue 21:00, run due 20:00
+        self.assertEqual(row["status"], "OK")
+
+
+class CriticalTests(unittest.TestCase):
+    def test_subject_and_telegram(self):
+        rows = [{"label": "com.conner.callscorer", "status": "STALE", "detail": "no log write since Mon 20:00"},
+                {"label": "com.conner.x", "status": "OK", "detail": ""}]
+        cfg = {"critical_labels": ["com.conner.callscorer"], "telegram_notify": "/bin/echo"}
+        self.assertEqual(fc.subject(rows, cfg), "[fleet-check] CRITICAL: STALE callscorer")
+        self.assertTrue(fc.telegram_alert(cfg, rows))
+        self.assertFalse(fc.telegram_alert({"critical_labels": []}, rows))
+
+
 class RenderTests(unittest.TestCase):
     def test_subject_ok(self):
         rows = [{"label": "com.conner.a", "status": "OK"}]

@@ -18,7 +18,7 @@ import subprocess
 import sys
 import time
 import urllib.request
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PREFIXES = ("com.conner.", "com.connercrowe.", "ai.openclaw.")
@@ -36,6 +36,8 @@ DEFAULT_CONFIG = {
     "expected_unloaded": [],
     "ignore_labels": [],
     "overrides": {},
+    "critical_labels": [],
+    "telegram_notify": str(Path.home() / "bin" / "notify.sh"),
 }
 
 
@@ -113,6 +115,40 @@ def expected_interval_hours(pl):
     if any("Minute" in e for e in entries):
         return 1.0
     return HOURS_DAY
+
+
+def last_scheduled_fire(pl, now):
+    """Most recent wall-clock time this StartCalendarInterval schedule should have fired.
+
+    Exact for weekday/hour/minute schedules (the launchd forms the fleet uses). Returns None
+    for StartInterval, Day/Month schedules, or unscheduled jobs; callers fall back to the
+    cadence rule. `now` is epoch seconds; launchd schedules are local time.
+    """
+    sci = pl.get("StartCalendarInterval")
+    if sci is None or "StartInterval" in pl:
+        return None
+    entries = sci if isinstance(sci, list) else [sci]
+    if any("Day" in e or "Month" in e for e in entries):
+        return None
+    now_dt = datetime.fromtimestamp(now)
+    best = None
+    for back in range(0, 9):
+        day = (now_dt - timedelta(days=back)).replace(hour=0, minute=0, second=0, microsecond=0)
+        # launchd: Sunday = 0 or 7, Monday = 1. Python: Monday = 0.
+        launchd_wd = (day.weekday() + 1) % 7
+        for e in entries:
+            if "Weekday" in e and int(e["Weekday"]) % 7 != launchd_wd:
+                continue
+            if "Hour" in e:
+                cands = [day.replace(hour=int(e["Hour"]), minute=int(e.get("Minute", 0)))]
+            elif "Minute" in e:
+                cands = [day.replace(hour=h, minute=int(e["Minute"])) for h in range(24)]
+            else:
+                continue
+            for c in cands:
+                if c <= now_dt and (best is None or c > best):
+                    best = c
+    return best.timestamp() if best else None
 
 
 def job_kind(pl):
@@ -218,8 +254,17 @@ def assess(entries, loaded, cfg, now):
                 if age is None:
                     if row["status"] == "OK":
                         row.update(status="NO_LOG", detail="log never written: %s" % lp)
-                elif interval is not None and age > interval * STALE_FACTOR + GRACE_HOURS:
-                    stale = "log %s old, expected every %s" % (fmt_h(age), fmt_h(interval))
+                else:
+                    last_fire = None if ov.get("max_age_hours") else last_scheduled_fire(pl, now)
+                    if last_fire is not None:
+                        due = now - last_fire > GRACE_HOURS * 3600
+                        missed = (now - lp.stat().st_mtime) > (now - last_fire)
+                        is_stale = due and missed
+                        stale = "no log write since the scheduled run at %s" % datetime.fromtimestamp(last_fire).strftime("%a %H:%M")
+                    else:
+                        is_stale = interval is not None and age > interval * STALE_FACTOR + GRACE_HOURS
+                        stale = "log %s old, expected every %s" % (fmt_h(age), fmt_h(interval))
+                if lp is not None and age is not None and is_stale:
                     if row["status"] == "OK":
                         row.update(status="STALE", detail=stale)
                     else:
@@ -261,14 +306,41 @@ def render(rows, hostname, when):
             r["status"], r["label"], r["kind"], fmt_h(r["interval_h"]), fmt_h(r["age_h"]),
             "-" if r["exit"] is None else r["exit"]))
     lines.append("")
-    lines.append("STALE = log older than 1.5x the largest gap in the schedule plus 2h. "
+    lines.append("STALE = no log write since the job's last scheduled fire time (plus 2h grace), "
+                 "or, for interval/monthly jobs, log older than 1.5x the cadence plus 2h. "
                  "NOT_LOADED = the EZpanl failure class: built, never bootstrapped. "
                  "Silence from this email means the checker itself did not run.")
     return "\n".join(lines)
 
 
-def subject(rows):
+def critical_issues(rows, cfg):
+    crit = set(cfg.get("critical_labels", []))
+    return [r for r in summarize(rows) if r["label"] in crit]
+
+
+def telegram_alert(cfg, rows):
+    """Push critical-job failures to Telegram via notify.sh, in addition to the email."""
+    crit = critical_issues(rows, cfg)
+    if not crit:
+        return False
+    script = cfg.get("telegram_notify") or ""
+    if not script or not Path(script).exists():
+        print("critical issue but no telegram_notify script at %s" % script, file=sys.stderr)
+        return False
+    msg = "fleet-check CRITICAL: " + "; ".join("%s %s (%s)" % (r["status"], r["label"], r["detail"]) for r in crit)
+    try:
+        subprocess.run([script, msg], capture_output=True, text=True, timeout=60)
+        return True
+    except Exception as exc:  # noqa: BLE001
+        print("telegram alert failed: %s" % exc, file=sys.stderr)
+        return False
+
+
+def subject(rows, cfg=None):
     issues = summarize(rows)
+    crit = critical_issues(rows, cfg or {})
+    if crit:
+        return "[fleet-check] CRITICAL: %s" % ", ".join("%s %s" % (r["status"], r["label"].split(".")[-1]) for r in crit)
     if not issues:
         return "[fleet-check] OK, %d jobs" % len(rows)
     head = ", ".join("%s %s" % (r["status"], r["label"].split(".")[-1]) for r in issues[:3])
@@ -322,7 +394,9 @@ def main(argv=None):
     import socket
     rows = assess(entries, loaded, cfg, now)
     body = render(rows, socket.gethostname(), when)
-    subj = subject(rows)
+    subj = subject(rows, cfg)
+    if not args.no_send:
+        telegram_alert(cfg, rows)
 
     if args.no_send:
         print(subj)

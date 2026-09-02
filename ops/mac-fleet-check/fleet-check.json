@@ -51,5 +51,10 @@
     "com.connercrowe.sugarbabies-report": {
       "log": "/Users/frontdesk/Library/Logs/sugarbabies-report.err.log"
     }
-  }
+  },
+  "critical_labels": [
+    "com.conner.callscorer",
+    "com.conner.greenacre-litigation-weekly"
+  ],
+  "telegram_notify": "/Users/frontdesk/bin/notify.sh"
 }
