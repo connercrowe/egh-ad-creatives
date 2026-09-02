@@ -28,7 +28,7 @@ else
   TOKEN="$(/usr/bin/python3 - "$SRC" <<'PY'
 import re, sys
 text = open(sys.argv[1], encoding="utf-8", errors="ignore").read()
-m = re.search(r"\b(\d{8,10}:[A-Za-z0-9_\-]{35})\b", text)
+m = re.search(r"\b(\d{8,12}:[A-Za-z0-9_\-]{35})\b", text)
 print(m.group(1) if m else "")
 PY
 )"

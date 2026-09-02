@@ -23,7 +23,11 @@ TO="${TO_MODEL:-anthropic/claude-sonnet-5}"
 # Build a patch that sets every path currently holding FROM to TO.
 PATCH="$(/usr/bin/python3 - "$CFG" "$FROM" "$TO" <<'PY'
 import json, sys
-cfg = json.load(open(sys.argv[1], encoding="utf-8"))
+try:
+    cfg = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception as exc:
+    print("cannot parse config: %s" % exc, file=sys.stderr)
+    sys.exit(3)
 frm, to = sys.argv[2], sys.argv[3]
 hits = []
 def walk(node, path):
@@ -32,8 +36,13 @@ def walk(node, path):
             walk(v, path + [k])
     elif isinstance(node, list):
         for i, v in enumerate(node):
-            walk(v, path + [i])
+            if v == frm:
+                print("skipping %s[%d]: model inside a list; patch it by hand" % (".".join(map(str, path)), i), file=sys.stderr)
+            else:
+                walk(v, path + [i])
     elif node == frm:
+        if any(isinstance(k, int) for k in path):
+            return
         hits.append(path)
 walk(cfg, [])
 if not hits:
@@ -49,7 +58,7 @@ print(json.dumps(patch, indent=2))
 for p in hits:
     print("path: " + ".".join(str(x) for x in p), file=sys.stderr)
 PY
-)"
+)" || { echo "could not read $CFG; aborting with no changes" >&2; exit 2; }
 if [ -z "$PATCH" ]; then
   echo "no occurrences of $FROM in $CFG; nothing to change"
   exit 0

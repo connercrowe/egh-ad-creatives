@@ -21,7 +21,8 @@ import sys
 from pathlib import Path
 
 MCP_ROOT = "C:/Users/Admin/Projects/google-ads-mcp"
-WIN_PATH = re.compile(r"C:[/\\][A-Za-z0-9_./\\ -]+")
+WIN_PATH = re.compile(r"C:/[A-Za-z0-9_./-]+")
+BACKSLASH_PATH = re.compile(r"C:\\[^\s\"'`]+")
 ROTATE_HEADING = re.compile(r"^## Keep the intel log rotated\s*$", re.M)
 
 PREAMBLE = (
@@ -57,6 +58,7 @@ def split_frontmatter(text):
 def port(text):
     meta, body = split_frontmatter(text)
     body = ROTATE_HEADING.split(body)[0].rstrip()
+    body = BACKSLASH_PATH.sub(lambda m: m.group(0).replace("\\", "/"), body)
 
     body = re.sub(r'cd\s+"?' + re.escape(MCP_ROOT) + r'"?\s*(&&|;|\bthen\b)\s*', "", body)
     body = re.sub(r'cd\s+"?' + re.escape(MCP_ROOT) + r'"?', "stay in the repository root", body)

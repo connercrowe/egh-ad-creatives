@@ -14,7 +14,7 @@ Weekly check-in on the SugarBabies Low Ticket PMax search-theme rebuild applied 
 ## Run this first (READ ONLY)
 
 ```
-cd C:\Users\Admin\Projects\sugarbabies\_intel\lowticket-search-themes
+cd C:/Users/Admin/Projects/sugarbabies/_intel/lowticket-search-themes
 python checkin.py
 ```
 
@@ -54,7 +54,7 @@ If DEGRADED after 14+ days, diagnose before alarming: did spend shift between as
 
 Once themes have been stable and approved ~4 consecutive weeks and ROAS has a clear verdict, propose downgrading this to monthly or retiring it — say so in the run output rather than running weekly forever.
 
-Runbook: `C:\Users\Admin\Projects\sugarbabies\_intel\lowticket-search-themes\RUNBOOK.md`. Memory: `project_sugarbabies_pmax_search_themes`.
+Runbook: `C:/Users/Admin/Projects/sugarbabies/_intel/lowticket-search-themes/RUNBOOK.md`. Memory: `project_sugarbabies_pmax_search_themes`.
 
 ## Output rule for the cloud
 You cannot append to any account-management log or local report file from here. Put the dated log entry, in the log's established format, at the end of your final message so it can be pasted in by hand. The final message is the deliverable.

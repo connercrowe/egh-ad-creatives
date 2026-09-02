@@ -33,13 +33,13 @@ the real environment-variable names from section 6.
 
 **A4. Ship steps one and five to the Mac.**
 ```powershell
-ssh macmini "mkdir -p ~/Projects/fleet-check ~/bin ~/Library/Logs ~/step5"
+ssh macmini "mkdir -p ~/Projects/fleet-check ~/bin ~/Library/Logs ~/Library/LaunchAgents ~/step5"
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\fleet_check.py" macmini:~/Projects/fleet-check/
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\fleet-check.json" macmini:~/Projects/fleet-check/
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\test_fleet_check.py" macmini:~/Projects/fleet-check/
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\run-fleet-check.sh" macmini:~/bin/run-fleet-check.sh
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\com.conner.fleet-check.plist" macmini:~/Library/LaunchAgents/
-scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\roger-step5\*.sh" macmini:~/step5/
+Get-ChildItem "C:\Users\Admin\Projects\egh-ad-creatives\ops\roger-step5\*.sh" | ForEach-Object { scp $_.FullName macmini:"~/step5/" }
 ssh macmini "chmod +x ~/bin/run-fleet-check.sh ~/step5/*.sh"
 ```
 
@@ -81,12 +81,14 @@ with Run now, read the output, then disable the matching desktop task.
 the credential names from A3, Custom network with the four Google hosts,
 the pinned pip line as setup script.
 
-**C3. Seven Google Ads routines.** Ported prompts are in `ops/routines/ports/`.
+**C3. Seven Google Ads routines, plus two deferred.** Ported prompts are in `ops/routines/ports/`.
 Each file's header lists any BLOCKER paths; resolve those first (the EZpanl
 claim library and the SugarBabies runbook need a repo home, or the step is
 dropped). Create each on the environment from C2, Sonnet 5, Run now once,
 then disable the desktop twin. Enable the three write tasks last, after the
-read-only ones have produced two clean runs.
+read-only ones have produced two clean runs. Deferred until their repo and
+secret are attached in the UI: `connercrowe-index-watch` and
+`connercrowe-citation-remeasure` (see CREATE.md).
 
 ## D. After
 

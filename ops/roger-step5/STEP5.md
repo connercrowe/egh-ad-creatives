@@ -17,7 +17,7 @@ refuse to run out of order.
 ## 0. Before either path (both required)
 
 **A. Console spend cap.** Anthropic Console, Plans and Billing, Limits. Set a
-monthly cap on the org and, if the UI allows, on Roger's key (`...ZJuAAA`).
+monthly cap on the org and, if the UI allows, on the key named for Roger in the Console.
 This has been an open loop since June and is the only hard backstop OpenClaw
 does not provide. Two minutes, no script.
 
@@ -26,7 +26,7 @@ does not provide. Two minutes, no script.
 ```powershell
 git -C "C:\Users\Admin\Projects\egh-ad-creatives" pull origin claude/mac-mini-agent-optimization-7tut4s
 ssh macmini "mkdir -p ~/step5"
-scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\roger-step5\*.sh" macmini:~/step5/
+Get-ChildItem "C:\Users\Admin\Projects\egh-ad-creatives\ops\roger-step5\*.sh" | ForEach-Object { scp $_.FullName macmini:"~/step5/" }
 ssh macmini "chmod +x ~/step5/*.sh"
 ```
 

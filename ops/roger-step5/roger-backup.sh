@@ -11,7 +11,7 @@ mkdir -p "$DEST"
 chmod 700 "$HOME/step5-backups" "$DEST"
 
 if [ -d "$HOME/.openclaw" ]; then
-  /usr/bin/tar -czf "$DEST/dot-openclaw.tgz" -C "$HOME" .openclaw
+  /usr/bin/tar -czf "$DEST/dot-openclaw.tgz" -C "$HOME" .openclaw || { echo "tar of ~/.openclaw failed; no backup written" >&2; exit 1; }
   echo "saved ~/.openclaw -> $DEST/dot-openclaw.tgz"
 fi
 for L in ai.openclaw.gateway com.conner.roger-healthcheck com.conner.roger-reset; do

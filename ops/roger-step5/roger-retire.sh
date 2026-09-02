@@ -18,6 +18,7 @@ if [ ! -f "$HOME/step5-backups/LATEST" ]; then
 fi
 
 UID_NUM="$(id -u)"
+STILL_LOADED=0
 PARK="$HOME/Library/LaunchAgents/_disabled-step5"
 mkdir -p "$PARK"
 
@@ -28,16 +29,25 @@ for L in com.conner.roger-healthcheck com.conner.roger-reset ai.openclaw.gateway
   else
     echo "$L not loaded"
   fi
-  if [ -f "$P" ]; then
+  if "$LAUNCHCTL" list 2>/dev/null | grep -q "$L"; then
+    echo "STILL LOADED: $L. Not parking its plist. Investigate before continuing." >&2
+    STILL_LOADED=1
+  elif [ -f "$P" ]; then
     mv "$P" "$PARK/" && echo "parked $L.plist -> $PARK/"
   fi
 done
 
 sleep 3
-if pgrep -f "[o]penclaw" 2>/dev/null | grep -qv "roger-retire"; then
-  echo "WARNING: an openclaw process is still running:"; pgrep -fl "[o]penclaw" | grep -v "roger-retire"
+LEFT="$(pgrep -fl "[o]penclaw" 2>/dev/null | grep -v "^$$ " | grep -v "^$PPID " || true)"
+if [ -n "$LEFT" ]; then
+  echo "WARNING: an openclaw process is still running:"; printf '%s\n' "$LEFT"
 else
   echo "no openclaw process running"
+fi
+
+if [ "$STILL_LOADED" = "1" ]; then
+  echo "retire INCOMPLETE: at least one job would not boot out. Nothing was parked for it." >&2
+  exit 1
 fi
 
 cat <<EOF

@@ -15,7 +15,7 @@ if [ -r "$ENV_FILE" ]; then
   . "$ENV_FILE"
 fi
 if [ -z "${TELEGRAM_BOT_TOKEN:-}" ] && [ -r "$HOME/.openclaw/openclaw.json" ]; then
-  TELEGRAM_BOT_TOKEN="$(/usr/bin/python3 -c 'import re,sys;t=open(sys.argv[1],encoding="utf-8",errors="ignore").read();m=re.search(r"\b(\d{8,10}:[A-Za-z0-9_\-]{35})\b",t);print(m.group(1) if m else "")' "$HOME/.openclaw/openclaw.json")"
+  TELEGRAM_BOT_TOKEN="$(/usr/bin/python3 -c 'import re,sys;t=open(sys.argv[1],encoding="utf-8",errors="ignore").read();m=re.search(r"\b(\d{8,12}:[A-Za-z0-9_\-]{35})\b",t);print(m.group(1) if m else "")' "$HOME/.openclaw/openclaw.json")"
 fi
 TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-8644778909}"
 

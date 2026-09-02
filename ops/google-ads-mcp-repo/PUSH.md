@@ -45,15 +45,20 @@ move the secret backup out of the repo entirely. Ignoring it is not enough
 because a future `git add -f` or a tool that reads the folder would still see it.
 
 ```powershell
+Add-Content -Path "C:\Users\Admin\Projects\google-ads-mcp\.gitignore" -Value ""
 Get-Content "C:\Users\Admin\Projects\_push-tools\gitignore.google-ads-mcp" | Add-Content "C:\Users\Admin\Projects\google-ads-mcp\.gitignore"
 New-Item -ItemType Directory -Force -Path "C:\Users\Admin\Projects\_secrets-parked"
 Move-Item "C:\Users\Admin\Projects\google-ads-mcp\.env.bak-preclean-20260729122456" "C:\Users\Admin\Projects\_secrets-parked\google-ads-mcp.env.bak-preclean-20260729122456"
-git -C "C:\Users\Admin\Projects\google-ads-mcp" rm -r --cached --ignore-unmatch audit.log profiles rsa_drafts.json greenacre_lp norco_lp_repoint_rollback.json _reports rec_scan snippets .mcp.json
+git -C "C:\Users\Admin\Projects\google-ads-mcp" rm -r --cached --ignore-unmatch .env google-ads.yaml audit.log profiles rsa_drafts.json greenacre_lp norco_lp_repoint_rollback.json _reports rec_scan snippets .mcp.json
 git -C "C:\Users\Admin\Projects\google-ads-mcp" status --short
+git -C "C:\Users\Admin\Projects\google-ads-mcp" ls-files | Select-String -Pattern "^\.env|\.bak|google-ads\.yaml|audit\.log|^profiles/|rsa_drafts|\.log$"
 ```
 
 The `rm --cached` line only untracks files that were already committed; it
 does not delete them from disk. If it prints nothing, nothing was tracked.
+The `ls-files` line must print NOTHING. A `.gitignore` entry does not untrack
+a file that was committed earlier, and the scanner skips ignored paths, so
+this line is the only check that a tracked secret file is not about to ship.
 
 ## 4. Scan, twice
 
@@ -69,7 +74,8 @@ Full history:
 git -C "C:\Users\Admin\Projects\google-ads-mcp" log --all -p | python "C:\Users\Admin\Projects\_push-tools\scan_secrets.py" --stdin
 ```
 
-Both must print `clean`. The scanner lists any secret-shaped file it skipped
+Both must print `clean`. The tree scan also fails if a `.env` backup copy is
+still inside the folder, even though it is gitignored. The scanner lists any secret-shaped file it skipped
 so it can be moved out, and exits nonzero on any finding.
 
 ### 4a. Tree hit
@@ -84,6 +90,7 @@ snapshot instead; the full history stays on the machine.
 ```powershell
 Set-Location "C:\Users\Admin\Projects\google-ads-mcp"
 git checkout --orphan clean-main
+git rm -r --cached .
 git add -A
 git -c user.name="Conner Crowe" -c user.email="hi@connercrowe.com" commit -m "Clean snapshot for hosted repo"
 python "C:\Users\Admin\Projects\_push-tools\scan_secrets.py" --tree "C:\Users\Admin\Projects\google-ads-mcp"

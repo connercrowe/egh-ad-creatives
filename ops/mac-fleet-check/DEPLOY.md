@@ -40,7 +40,7 @@ Replace the clone path if yours differs.
 ```powershell
 git -C "C:\Users\Admin\Projects\egh-ad-creatives" fetch origin claude/mac-mini-agent-optimization-7tut4s
 git -C "C:\Users\Admin\Projects\egh-ad-creatives" checkout claude/mac-mini-agent-optimization-7tut4s
-ssh macmini "mkdir -p ~/Projects/fleet-check ~/bin ~/Library/Logs"
+ssh macmini "mkdir -p ~/Projects/fleet-check ~/bin ~/Library/Logs ~/Library/LaunchAgents"
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\fleet_check.py" macmini:~/Projects/fleet-check/
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\fleet-check.json" macmini:~/Projects/fleet-check/
 scp "C:\Users\Admin\Projects\egh-ad-creatives\ops\mac-fleet-check\test_fleet_check.py" macmini:~/Projects/fleet-check/

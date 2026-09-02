@@ -183,6 +183,7 @@ def assess(entries, loaded, cfg, now):
         ov = cfg.get("overrides", {}).get(label, {})
         if ov.get("max_age_hours"):
             interval = float(ov["max_age_hours"]) / STALE_FACTOR
+            row["interval_h"] = interval
 
         is_loaded = label in loaded
         if not is_loaded:

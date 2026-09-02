@@ -30,7 +30,7 @@ PATTERNS = [
     ("client secret assignment", re.compile(r"(?i)client[_\-]?secret\s*[=:]\s*['\"]?[A-Za-z0-9_\-]{12,}")),
     ("refresh token assignment", re.compile(r"(?i)refresh[_\-]?token\s*[=:]\s*['\"]?[A-Za-z0-9_\-/]{20,}")),
     ("app password assignment", re.compile(r"(?i)(app[_\-]?password|smtp[_\-]?pass|email[_\-]?pass)\s*[=:]\s*['\"]?[A-Za-z0-9 ]{12,}")),
-    ("telegram bot token", re.compile(r"\b\d{8,10}:[A-Za-z0-9_\-]{35}\b")),
+    ("telegram bot token", re.compile(r"\b\d{8,12}:[A-Za-z0-9_\-]{35}\b")),
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}")),
     ("private key block", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----")),
 ]
@@ -69,11 +69,9 @@ def redact(s):
 
 def scan_text(text, where, findings):
     for lineno, line in enumerate(text.splitlines(), 1):
-        if PLACEHOLDER.search(line):
-            continue
         for name, rx in PATTERNS:
             m = rx.search(line)
-            if m:
+            if m and not PLACEHOLDER.search(m.group(0)):
                 findings.append((where, lineno, name, redact(m.group(0))))
                 break
 
@@ -114,11 +112,9 @@ def scan_stdin():
             continue
         if line.startswith("+++ ") or line.startswith("--- "):
             continue
-        if PLACEHOLDER.search(line):
-            continue
         for name, rx in PATTERNS:
             m = rx.search(line)
-            if m:
+            if m and not PLACEHOLDER.search(m.group(0)):
                 findings.append((where, lineno, name, redact(m.group(0))))
                 break
     return findings
@@ -146,8 +142,11 @@ def main(argv=None):
         print()
 
     if not findings:
+        if extra:
+            print("%s scan: no secret values found, but the file(s) above must be moved out before pushing" % label)
+            return 1
         print("%s scan: clean" % label)
-        return 1 if extra else 0
+        return 0
 
     print("%s scan: %d finding(s)" % (label, len(findings)))
     for where, lineno, name, val in findings:
