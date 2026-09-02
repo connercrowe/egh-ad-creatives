@@ -47,3 +47,16 @@ Section A complete. Committing and pushing the branch.
 - Discovery pass 2: 27 jobs scanned, 3 issues, all genuine: `com.conner.ops-brief` STALE (its `ops-brief.log` has been empty since 2026-06-09; the plist is loaded but the digest writes nothing), `com.conner.sb-pmax-report` NOT_LOADED (last log 2026-07-23), `com.connercrowe.brandit-monthly` NOT_LOADED (last ran 2026-08-01). Left visible on purpose; these are for Conner to confirm as parked or fix.
 - Real send: `~/bin/run-fleet-check.sh` exit 0. Verification: Gmail thread `1a0633aba5b40f12` from ops@connercrowe.com to hi@connercrowe.com at 2026-09-02T17:46:27Z, subject `[fleet-check] 3 ISSUES: STALE ops-brief, NOT_LOADED sb-pmax-report, NOT_LOADED brandit-monthly`.
 - Bootstrap: see next line.
+- Bootstrap: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.conner.fleet-check.plist` exit 0; `launchctl list | grep fleet-check` -> `-	0	com.conner.fleet-check`; schedule daily 10:30 local.
+- Result: PASS
+
+## 2026-09-02 B2 - retire Roger
+- Pre-check: old `~/bin/notify.sh` takes one positional message; all 20 wrapper call sites pass a single quoted string, no flags, so the drop-in swap is safe. No `~/.config/telegram/notify.env` and no `~/step5-backups/` existed before the run.
+- Ran: `~/step5/run-step5.sh`. 1/4 backup -> `~/step5-backups/20260902-104727/` (dot-openclaw.tgz, three plists, notify.sh.orig, launchctl-list.txt, openclaw-version.txt). 2/4 token extracted to `~/.config/telegram/notify.env` (mode 600), Bot API replied ok: `test message delivered` (Telegram message 1). 3/4 new notify.sh installed; its own test send returned ok, otherwise the script would have restored the old copy and exited (Telegram message 2). 4/4 booted out roger-healthcheck, roger-reset, and ai.openclaw.gateway; the first two plists were parked.
+- Deviation, recorded: run-step5.sh exited 1 because its immediate re-check still saw `ai.openclaw.gateway` in `launchctl list` while the job was tearing down (the same output already showed `no openclaw process running`). Checked state (0 loaded, 0 processes) and re-ran the idempotent `~/step5/roger-retire.sh` as STEP5.md allows: `ai.openclaw.gateway not loaded` -> `parked ai.openclaw.gateway.plist`, exit 0. Rollback commands printed by the script and kept in STEP5.md.
+- Verification: `launchctl list | grep -c roger` -> `0`; `launchctl list | grep -c openclaw` -> `0`; `_disabled-step5/` holds all three plists; `~/bin/run-fleet-check.sh --no-send` now scans 24 jobs (was 27) and no line matches roger or openclaw. Same 3 genuine issues as B1.
+- Post: removed the `roger-healthcheck` and `roger-reset` overrides from `fleet-check.json` (local + Mac), per STEP5 "after either path".
+- Telegram note: both sends were confirmed by the Bot API `"ok":true` response inside the scripts; I cannot read the Telegram client itself. Conner should see two messages from @Crowe_ops_bot at 10:47 PDT.
+- Result: PASS
+
+Section B complete. Committing and pushing the branch.

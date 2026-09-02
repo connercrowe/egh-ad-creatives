@@ -1,6 +1,9 @@
 {
   "email_to": "hi@connercrowe.com",
-  "mailer": ["/usr/bin/python3", "/Users/frontdesk/Projects/ops-mailer/send_email.py"],
+  "mailer": [
+    "/usr/bin/python3",
+    "/Users/frontdesk/Projects/ops-mailer/send_email.py"
+  ],
   "healthchecks_url": "",
   "expected_unloaded": [
     "com.connercrowe.brandit-monthly-meta",
@@ -9,20 +12,44 @@
   ],
   "ignore_labels": [],
   "overrides": {
-    "com.conner.roger-healthcheck": {"skip_log": true},
-    "com.conner.macmini-heartbeat": {"skip_log": true},
-    "com.conner.brandit-promo-scorer": {"log": "/Users/frontdesk/Library/Logs/brandit-promo-scorer.log"},
-    "com.conner.callscorer": {"log": "/Users/frontdesk/Library/Logs/callscorer.log"},
-    "com.conner.content-calendar": {"log": "/Users/frontdesk/Library/Logs/content-calendar.log"},
-    "com.conner.egh-blog": {"log": "/Users/frontdesk/Library/Logs/egh-blog.log"},
-    "com.conner.opswatchdog": {"log": "/Users/frontdesk/Projects/ops-watchdog/state/run.log"},
-    "com.conner.roger-reset": {"log": "/Users/frontdesk/Library/Logs/roger-reset.log"},
-    "com.conner.sb-blog": {"log": "/Users/frontdesk/Library/Logs/sb-blog.log"},
-    "com.conner.sb-weekly-recap": {"log": "/Users/frontdesk/Library/Logs/sb-weekly-recap.log"},
-    "com.connercrowe.brandit-watchdog": {"log": "/Users/frontdesk/Library/Logs/brandit-watchdog.log"},
-    "com.connercrowe.egh-report": {"log": "/Users/frontdesk/Library/Logs/egh-report.log"},
-    "com.connercrowe.inside-media-meta": {"log": "/Users/frontdesk/Library/Logs/inside-media-report.log"},
-    "com.connercrowe.rrd-report": {"log": "/Users/frontdesk/Library/Logs/rrd-report.log"},
-    "com.connercrowe.sugarbabies-report": {"log": "/Users/frontdesk/Library/Logs/sugarbabies-report.err.log"}
+    "com.conner.macmini-heartbeat": {
+      "skip_log": true
+    },
+    "com.conner.brandit-promo-scorer": {
+      "log": "/Users/frontdesk/Library/Logs/brandit-promo-scorer.log"
+    },
+    "com.conner.callscorer": {
+      "log": "/Users/frontdesk/Library/Logs/callscorer.log"
+    },
+    "com.conner.content-calendar": {
+      "log": "/Users/frontdesk/Library/Logs/content-calendar.log"
+    },
+    "com.conner.egh-blog": {
+      "log": "/Users/frontdesk/Library/Logs/egh-blog.log"
+    },
+    "com.conner.opswatchdog": {
+      "log": "/Users/frontdesk/Projects/ops-watchdog/state/run.log"
+    },
+    "com.conner.sb-blog": {
+      "log": "/Users/frontdesk/Library/Logs/sb-blog.log"
+    },
+    "com.conner.sb-weekly-recap": {
+      "log": "/Users/frontdesk/Library/Logs/sb-weekly-recap.log"
+    },
+    "com.connercrowe.brandit-watchdog": {
+      "log": "/Users/frontdesk/Library/Logs/brandit-watchdog.log"
+    },
+    "com.connercrowe.egh-report": {
+      "log": "/Users/frontdesk/Library/Logs/egh-report.log"
+    },
+    "com.connercrowe.inside-media-meta": {
+      "log": "/Users/frontdesk/Library/Logs/inside-media-report.log"
+    },
+    "com.connercrowe.rrd-report": {
+      "log": "/Users/frontdesk/Library/Logs/rrd-report.log"
+    },
+    "com.connercrowe.sugarbabies-report": {
+      "log": "/Users/frontdesk/Library/Logs/sugarbabies-report.err.log"
+    }
   }
 }
