@@ -60,3 +60,21 @@ Section A complete. Committing and pushing the branch.
 - Result: PASS
 
 Section B complete. Committing and pushing the branch.
+
+## 2026-09-02 C1 - three connector-only routines (in progress)
+- Created in the Routines UI (claude.ai/code/routines), each: Default environment, no repository, model Sonnet 5, trigger Schedule, push + email notifications, prompt pasted verbatim from the file below its `---` line, connectors trimmed from the 16 defaults to only those named in CREATE.md:
+  - `EGH Meta tracking health (daily)` -> trig_01CJ2znCvBy3pLoamgmzoyds, daily 08:00 PDT (15:00 UTC), connectors Klaviyo + Meta Ads. Run now started 10:52 PDT.
+  - `EZpanl Meta engagement watch (daily)` -> trig_01HEtmgZz3FjNhu7hJQR7R5u, daily 07:30 PDT (14:30 UTC), connector Meta Ads. Run now started.
+  - `EGH Klaviyo cart metric watch (weekly)` -> trig_0158NYfppNkhFFzoKcttxQrr, Mondays 08:00 PDT (15:00 UTC), connector Klaviyo. Run now started.
+- Run outputs and the desktop-twin disables follow below.
+- Run now needs about ten seconds on the page before the run registers; the first attempts on routines 2 and 3 were abandoned by navigating away. Re-triggered: routine 3 run started 11:00 PDT, routine 2 run started 11:01 PDT (POST /v1/code/triggers/<id>/run returned 200).
+- Routine 1 run (10:52 PDT, session_01WHPdK9faAunYWuUrxECZUo): succeeded, 20 tools used (6 failed calls, recovered), report delivered. Headline: Klaviyo Placed Order now ~18/day (515 post-fix), so the Meta/Klaviyo ratio reads ~0.22x, inverted versus the 4.7-5.4x band; WEB Purchase 80 vs SERVER 40; C1/C2/C3 budget split $49.93/$34.21/$17.54; verdict "not scoreable, escalate". Connectors worked; prompt runs end to end.
+- Desktop twin for routine 1 (`egh-meta-tracking-health`): not registered in the desktop store, nothing to disable. Desktop twin for routine 3 (`egh-cart-flow-build`): same, unregistered.
+- Routine 3 run (11:00 PDT, session_01QWvaUPz6F72kUXqRqyuERQ): succeeded, 2 tools. FINDING: the Klaviyo "Added to Cart" metric now EXISTS (id ULSfkz, created 2026-08-20T23:32:12Z, Shopify integration), plus Submitted Search / Viewed Product / Viewed Collection / Active on Site, all created Aug 20-21. The dead-pixel blocker cleared around Aug 20. Next step per the prompt: build the "Added to Cart Reminder" flow in draft on the desktop; activation needs Conner's approval. Nothing was written.
+
+## 2026-09-02 C2 - the Google Ads environment
+- There is no standalone environments page (claude.ai/code/environments returns "Page not found"); environments are created from the routine form's Cloud environment picker via "Add cloud environment".
+- Created environment `google-ads`: network access Custom with googleads.googleapis.com, oauth2.googleapis.com, accounts.google.com, www.googleapis.com, plus the UI's "default list of common package managers" (needed so the setup script's `pip install` can reach PyPI; ROUTINE-ENV.md did not mention this); setup script `pip install "google-ads==31.0.0" "fastmcp==3.3.1" python-dotenv`; environment variables `PYTHONPATH=src` and `GOOGLE_ADS_LOGIN_CUSTOMER_ID=4727088547` (the MCC id is not a secret). `connercrowe/google-ads-mcp` is selectable in the routine form's repository picker.
+- STOP (permission boundary, not a verification failure): the four credential values (GOOGLE_ADS_DEVELOPER_TOKEN, GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET, GOOGLE_ADS_REFRESH_TOKEN) were NOT entered. Entering API keys or tokens into a form is something this executor must not do on anyone's behalf; Conner pastes them himself. Note also the environment dialog's own warning: variables are visible to anyone using the environment, so ROUTINE-ENV.md section 1's accepted-exposure decision is Conner's to confirm when he pastes.
+- To finish C2, Conner: open any routine form -> Cloud environment -> google-ads -> edit, and append the four lines from the local `.env` (values only there) to the Environment variables box. Do NOT add GOOGLE_ADS_ALLOW_WRITES.
+- Result: STOP (environment built; credentials pending Conner)
