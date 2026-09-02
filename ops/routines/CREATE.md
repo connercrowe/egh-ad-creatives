@@ -1,0 +1,73 @@
+# Cloud Routines: what to create, and how (step four)
+
+Routines are created at https://claude.ai/code/routines (or `/schedule` in
+Claude Code). They cannot be created with connectors from this session's API:
+a routine made that way runs without any `mcp__*` tools, so the three
+connector-only routines below were created, confirmed to carry no connectors,
+and deleted. Create them in the UI, where connectors attach per routine.
+
+Two account-level checks before the first one, per the assessment:
+
+1. **Daily run cap.** The routines page shows the per-account cap. The full
+   plan adds about 12 runs per weekday. If the cap is below that, start with
+   the three live-money tasks once the Google Ads environment exists.
+2. **Weekly usage.** Routines draw down Max usage like interactive sessions.
+   Every routine below runs on **Sonnet 5**; the desktop tasks were on Opus 5
+   with a 1M window, which is what hit the weekly warning on Aug 27 and 28.
+
+## Ready now (connector-only, no repo, Default environment)
+
+Prompts are in this folder. Copy the text below the `---` line of each file
+verbatim into the routine's prompt.
+
+| Routine | Prompt file | Schedule (UTC) | Connectors | Model |
+|---|---|---|---|---|
+| EGH Meta tracking health (daily) | `egh-meta-tracking-health.md` | Daily 15:00 (08:00 PT) | Meta Ads, Klaviyo | claude-sonnet-5 |
+| EZpanl Meta engagement watch (daily) | `ezpanl-meta-launch-watch.md` | Daily 14:30 (07:30 PT) | Meta Ads | claude-sonnet-5 |
+| EGH Klaviyo cart metric watch (weekly) | `egh-cart-metric-watch.md` | Mondays 15:00 | Klaviyo | claude-sonnet-5 |
+
+UI settings for all three: environment **Default**, no repository,
+notifications **push + email** (the report is the deliverable; nothing is
+written anywhere), trigger type **Schedule**.
+
+After creating each one, use **Run now** once and read the run output. Each
+prompt opens with "if the connector is not available, say so in one line and
+stop", so a misconfigured routine fails fast and cheap. Then disable the
+matching desktop task in the desktop app (disable, not delete).
+
+## Blocked on step three (need the Google Ads environment)
+
+These need the `connercrowe/google-ads-mcp` repo and the environment described
+in `../google-ads-mcp-repo/ROUTINE-ENV.md` (credentials, Custom network
+allowlist, setup script). Prompts port from the desktop task files with the
+path substitution in ROUTINE-ENV.md section 6; they will be written once the
+repo exists and the real environment-variable names are known.
+
+| Desktop task | Cadence | Extra needs | Notes |
+|---|---|---|---|
+| `cc-budget-guard` | Daily 04:33 PT | none | Live write: one budget mutate, pre-approved 2026-08-14. Sets `GOOGLE_ADS_ALLOW_WRITES` inline only. |
+| `cc-search-terms-daily` | Daily 08:15 PT | none | Live write: tiered auto-negatives. Keep `guard_negative()` and the migration-term exclusion. `audit.log` must go to a durable sink; decide before enabling. |
+| `cc-lead-conversion-reconcile` | Daily | Gmail connector | Live write: offline click-conversion upload. |
+| `ezpanl-watchdog` | Twice daily | none | Read-only. Reads `Desktop/EZpanl-GTM/CLAIM_LIBRARY.md`; that file needs a repo home first. |
+| `rrd-bidding-migration-watch` | Daily | none | Read-only. |
+| `sugarbabies-lowticket-theme-checkin` | Weekly | none | Read-only. |
+| `cc-shopify-ads-weekly-review` | Weekly | none | Read-only; proposes only. |
+| `connercrowe-index-watch` | Daily | `connercrowe-rebuild` repo, GSC service-account JSON as a secret | Runs from a specific branch worktree today; the routine clones the branch directly. |
+| `connercrowe-citation-remeasure` | Monthly | `connercrowe-rebuild` repo | Writes one markdown file; in the cloud it opens a PR instead. |
+
+## Stays on the desktop
+
+`brand-it-monthly-autopilot`, `linkedin-engagement`, `pre-call-briefs`,
+`gemini-notes-weekly-ingest`, `vault-health-weekly`, `vault-keeper-monthly`,
+`weekly-content-harvest`, `ezpanl-weekly-readiness-sweep` (globs desktop
+files for a signed agreement and a PDF; cannot be done from the cloud).
+
+## The one gap this migration opens
+
+The desktop tasks appended dated entries to per-client
+`account-management-log.md` files, which is where the trend across runs lived.
+A cloud routine cannot write those files. Each ported prompt formats its
+entry at the end of the report so it can be pasted in by hand. If that
+becomes a chore, the fix is a small repo for the logs that routines clone and
+commit to; that is a step-five decision, not a reason to keep the tasks on a
+PC that sleeps.
