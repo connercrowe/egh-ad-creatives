@@ -18,6 +18,13 @@ GOOGLE_ADS_LOGIN_CUSTOMER_ID      # MCC 4727088547
 PYTHONPATH=src
 ```
 
+Confirmed 2026-09-02 (PUSH.md section 6, names only): the local `.env` holds
+exactly six keys, the five above plus `GOOGLE_ADS_ALLOW_WRITES`. No aliasing;
+the names match the library loader as written. `GOOGLE_ADS_ALLOW_WRITES` is
+deliberately not carried into the environment (see below). The `.env.example`
+also documents `RRD_WC_*` and `MICROSOFT_ADS_*` keys; neither set exists in the
+live `.env` today, so neither goes into the environment.
+
 Not set at the environment level, ever: `GOOGLE_ADS_ALLOW_WRITES`. The three
 write tasks set it inline on the one command that writes, exactly as their
 desktop prompts do today.

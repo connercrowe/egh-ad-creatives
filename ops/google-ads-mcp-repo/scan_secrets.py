@@ -40,6 +40,7 @@ PLACEHOLDER = re.compile(r"(?i)(your[_\-]|<[^>]+>|xxxx|example|placeholder|redac
 
 SKIP_DIRS = {".git", ".venv", "venv", "__pycache__", "node_modules", ".mypy_cache", ".pytest_cache"}
 TEXT_MAX_BYTES = 5_000_000
+ENV_TEMPLATES = {".env.example", ".env.sample", ".env.template"}
 
 
 def load_ignore_globs():
@@ -85,6 +86,12 @@ def scan_tree(root, globs):
             continue
         rel = p.relative_to(root).as_posix()
         if any(part in SKIP_DIRS for part in p.parts):
+            continue
+        if p.name in ENV_TEMPLATES:
+            # Committed templates (`.env.example`) are documentation, not backups: scan their
+            # content like any other tracked file instead of flagging them.
+            if p.stat().st_size <= TEXT_MAX_BYTES:
+                scan_text(p.read_text(encoding="utf-8", errors="ignore"), rel, findings)
             continue
         if ignored(rel, globs):
             # `.env` is expected and stays local. Backup copies of it are not; flag them so they get

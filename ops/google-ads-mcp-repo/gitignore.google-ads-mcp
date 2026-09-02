@@ -4,6 +4,7 @@
 # ---- credentials: never on a code host
 .env
 .env.*
+!.env.example
 *.env
 *.bak
 *.bak-*
