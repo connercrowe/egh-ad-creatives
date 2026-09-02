@@ -38,3 +38,12 @@ Executor: Claude Code on the Windows desktop, 2026-09-02. Appended after every s
 - Result: PASS
 
 Section A complete. Committing and pushing the branch.
+
+## 2026-09-02 B1 - fleet checker on the Mac
+- Ran: `/usr/bin/python3 -m unittest test_fleet_check.py` -> `Ran 23 tests ... OK`.
+- Deviation, recorded: first `~/bin/run-fleet-check.sh --no-send` failed with `bad interpreter: /bin/bash^M`. The Windows clone checks files out with CRLF, so every scp'd script carried CR. Fixed on the Mac with `sed -i '' 's/\r$//'` on all 11 copied files (re-verified: 0 CR bytes, shebang clean). Added `ops/.gitattributes` (`*.sh`, `*.plist`, `*.py`, `*.json` -> `eol=lf`) so future checkouts ship LF; committed as `3034f4f`.
+- Discovery pass 1: 27 jobs scanned, 16 issues. 13 of them were config noise: jobs launched through `ops-brief/runner.sh` write `~/Library/Logs/<name>.log` while their plist `StandardOutPath` points at an empty `.out` file, `opswatchdog` writes `Projects/ops-watchdog/state/run.log`, and `sugarabies-report` logs to its `.err.log`. `com.connercrowe.ezpanl-report` was listed in `expected_unloaded` but is loaded and ran 2026-08-31, so it was removed from that list.
+- `fleet-check.json` tuned (14 `log` overrides, 2 `skip_log`, 3 `expected_unloaded`), committed in `ops/mac-fleet-check/`, copied to `~/Projects/fleet-check/`.
+- Discovery pass 2: 27 jobs scanned, 3 issues, all genuine: `com.conner.ops-brief` STALE (its `ops-brief.log` has been empty since 2026-06-09; the plist is loaded but the digest writes nothing), `com.conner.sb-pmax-report` NOT_LOADED (last log 2026-07-23), `com.connercrowe.brandit-monthly` NOT_LOADED (last ran 2026-08-01). Left visible on purpose; these are for Conner to confirm as parked or fix.
+- Real send: `~/bin/run-fleet-check.sh` exit 0. Verification: Gmail thread `1a0633aba5b40f12` from ops@connercrowe.com to hi@connercrowe.com at 2026-09-02T17:46:27Z, subject `[fleet-check] 3 ISSUES: STALE ops-brief, NOT_LOADED sb-pmax-report, NOT_LOADED brandit-monthly`.
+- Bootstrap: see next line.
