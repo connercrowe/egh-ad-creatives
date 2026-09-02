@@ -1,0 +1,16 @@
+{
+  "email_to": "hi@connercrowe.com",
+  "mailer": ["/usr/bin/python3", "/Users/frontdesk/Projects/ops-mailer/send_email.py"],
+  "healthchecks_url": "",
+  "expected_unloaded": [
+    "com.connercrowe.ezpanl-report",
+    "com.connercrowe.brandit-monthly-meta",
+    "com.connercrowe.brandit-delivery-watch",
+    "com.conner.brandit-negatives"
+  ],
+  "ignore_labels": [],
+  "overrides": {
+    "com.conner.roger-healthcheck": {"skip_log": true},
+    "com.conner.macmini-heartbeat": {"skip_log": true}
+  }
+}
