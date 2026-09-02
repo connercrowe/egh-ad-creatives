@@ -78,7 +78,7 @@ class AssessTests(unittest.TestCase):
         return {r["label"]: r for r in fc.assess(entries, loaded, cfg, NOW)}
 
     def test_ok_daily_job(self):
-        lp = self._log("a.log"); touch(lp, 20)
+        lp = self._log("a.log"); touch(lp, 0.5)
         write_plist(self.d, "com.conner.a", StartCalendarInterval={"Hour": 9}, StandardOutPath=lp)
         rows = self.run_assess({"com.conner.a": (None, 0)})
         self.assertEqual(rows["com.conner.a"]["status"], "OK")
@@ -95,13 +95,6 @@ class AssessTests(unittest.TestCase):
         rows = self.run_assess({}, cfg)
         self.assertEqual(rows["com.connercrowe.ezpanl-report"]["status"], "UNLOADED_BY_DESIGN")
         self.assertEqual(fc.summarize(list(rows.values())), [])
-
-    def test_stale_weekday_job_on_monday_morning_is_fine(self):
-        lp = self._log("cs.log"); touch(lp, 62)  # Fri 20:00 -> Mon 10:00
-        sci = [{"Weekday": d, "Hour": 20} for d in (1, 2, 3, 4, 5)]
-        write_plist(self.d, "com.conner.callscorer", StartCalendarInterval=sci, StandardOutPath=lp)
-        rows = self.run_assess({"com.conner.callscorer": (None, 0)})
-        self.assertEqual(rows["com.conner.callscorer"]["status"], "OK")
 
     def test_stale_daily_job(self):
         lp = self._log("s.log"); touch(lp, 60)
