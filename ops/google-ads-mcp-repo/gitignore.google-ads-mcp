@@ -1,0 +1,45 @@
+# google-ads-mcp .gitignore
+# Merge into the repo's existing .gitignore (keep any lines already there).
+
+# ---- credentials: never on a code host
+.env
+.env.*
+*.env
+*.bak
+*.bak-*
+*credentials*
+*.token
+*.key
+*.pem
+*.p12
+google-ads.yaml
+.mcp.json
+
+# ---- client data and runtime state: stays machine-local
+audit.log
+*.log
+_reports/
+profiles/
+rsa_drafts.json
+greenacre_lp/
+norco_lp_repoint_rollback.json
+data-cache/
+output/
+rec_scan/
+snippets/
+*_STRESS_TEST_*.md
+
+# ---- python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+
+# ---- os
+.DS_Store
+Thumbs.db
